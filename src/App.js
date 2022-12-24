@@ -1,46 +1,95 @@
-import { useState } from "react";
-import Expenses from "./components/Expenses/Expenses";
-import NewExpense from "./components/NewExpense/NewExpense";
+import React, { useState, useEffect, useCallback } from "react";
+
+import MoviesList from "./components/MoviesList";
+import AddMovie from "./components/AddMovie";
+import "./App.css";
 
 function App() {
-  const dummy_expenses = [
-    {
-      id: "e1",
-      title: "Toilet Paper",
-      amount: 94.12,
-      date: new Date(2020, 7, 14),
-    },
-    { id: "e2", title: "New TV", amount: 799.49, date: new Date(2021, 2, 12) },
-    {
-      id: "e3",
-      title: "Car Insurance",
-      amount: 294.67,
-      date: new Date(2021, 2, 28),
-    },
-    {
-      id: "e4",
-      title: "New Desk (Wooden)",
-      amount: 450,
-      date: new Date(2021, 5, 12),
-    },
-  ];
+  const [movies, setMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const addExpenseHandler = (expense) => {
-    console.log("In App.js");
-    console.log(expense);
-    setExpenses((prevExpenses) => {
-      console.log(`expense: ${expense}`)
-      return [expense, ...prevExpenses];
-    });
-  };
+  const fetchMoviesHandler = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        "https://teknolojikimyaservis-default-rtdb.firebaseio.com",
+        // {
+        //   headers: {
+        //     // "Content-Type": "application/json",
+        //     "Access-Control-Allow-Origin": "*",
+        //     "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+        //     "Access-Control-Allow-Headers":
+        //       "Content-Type, Authorization, X-Requested-With",
+        //   },
+        // }
+      );
+      if (!response.ok) {
+        throw new Error("Something went wrong!");
+      }
 
-  const [expenses, setExpenses] = useState(dummy_expenses);
+      const data = await response.json();
+
+      const transformedMovies = data.results.map((movieData) => {
+        return {
+          id: movieData.episode_id,
+          title: movieData.title,
+          openingText: movieData.opening_crawl,
+          releaseDate: movieData.release_date,
+        };
+      });
+      setMovies(transformedMovies);
+    } catch (error) {
+      setError(error.message);
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchMoviesHandler();
+  }, [fetchMoviesHandler]);
+
+  async function addMovieHandler(movie) {
+    const response = await fetch(
+      "http://teknolojikimyaservis-default-rtdb.firebaseio.com/",
+      {
+        method: "POST",
+        body: JSON.stringify(movie),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const data = await response.json();
+    console.log(data);
+  }
+
+  let content = <p>Found no movies.</p>;
+
+  if (movies.length > 0) {
+    content = <MoviesList movies={movies} />;
+  }
+
+  if (error) {
+    content = <p>{error}</p>;
+  }
+
+  if (isLoading) {
+    content = <p>Loading...</p>;
+  }
 
   return (
-    <div>
-      <NewExpense onAddExpense={addExpenseHandler}></NewExpense>
-      <Expenses expenses={expenses} />
-    </div>
+    <React.Fragment>
+      <section>
+        <AddMovie onAddMovie={addMovieHandler} />
+      </section>
+      <section>
+        <button onClick={fetchMoviesHandler}>Fetch Movies</button>
+      </section>
+      <section>{content}</section>
+    </React.Fragment>
   );
 }
 
