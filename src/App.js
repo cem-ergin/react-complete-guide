@@ -1,20 +1,29 @@
-import Counter from "./components/Counter";
 import React from "react";
-import Header from "./components/Header";
-import Auth from "./components/Auth";
-import UserProfile from "./components/UserProfile";
-import { useSelector } from "react-redux";
+import { Route, Switch, Redirect } from "react-router-dom";
+import MainHeader from "./components/MainHeader";
+import ProductDetail from "./pages/ProductDetail";
+import Products from "./pages/Products";
+import Welcome from "./pages/Welcome";
 
 function App() {
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-
   return (
-    <>
-      <Header />
-      {!isAuthenticated && <Auth />}
-      {isAuthenticated && <UserProfile />}
-      <Counter />
-    </>
+    <div>
+      <MainHeader />
+      <Switch>
+        <Route path="/" exact>
+          <Redirect to="/welcome" />
+        </Route>
+        <Route path="/welcome">
+          <Welcome />
+        </Route>
+        <Route path="/products" exact>
+          <Products />
+        </Route>
+        <Route path="/products/:productId">
+          <ProductDetail />
+        </Route>
+      </Switch>
+    </div>
   );
 }
 
