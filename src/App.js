@@ -1,20 +1,32 @@
-import Counter from "./components/Counter";
-import React from "react";
-import Header from "./components/Header";
-import Auth from "./components/Auth";
-import UserProfile from "./components/UserProfile";
-import { useSelector } from "react-redux";
+import { Route, Switch, Redirect } from "react-router-dom";
+import Layout from "./components/layout/Layout";
+import AllQuotes from "./pages/AllQuotes";
+import NewQuote from "./pages/NewQuote";
+import NotFound from "./pages/NotFound";
+import QuoteDetail from "./pages/QuoteDetail";
 
 function App() {
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-
   return (
-    <>
-      <Header />
-      {!isAuthenticated && <Auth />}
-      {isAuthenticated && <UserProfile />}
-      <Counter />
-    </>
+    <Layout>
+      <Switch>
+        <Route path="/" exact>
+          <Redirect to="/quotes" />
+        </Route>
+
+        <Route path="/quotes" exact>
+          <AllQuotes />
+        </Route>
+        <Route path="/quotes/:quoteId">
+          <QuoteDetail />
+        </Route>
+        <Route path="/new-quote">
+          <NewQuote />
+        </Route>
+        <Route path="*">
+          <NotFound />
+        </Route>
+      </Switch>
+    </Layout>
   );
 }
 
